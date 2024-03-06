@@ -2,5 +2,5 @@
     "greeting": "Salve, seeker of wisdom. What would you like to know about our glorious Roman and Byzantine leaders?",
     "prompt": "Quaeris quid (What is your question)?",
     "emptyPrompt": "Me paenitet, non audivi te. (I'm sorry, I didn't hear you)",
-    "exitMessage": "Vale et gratias tibi ago for using Magnus Liber Imperatorum."
+    "exit": "Vale et gratias tibi ago for using Magnus Liber Imperatorum."
 }
