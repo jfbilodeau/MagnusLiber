@@ -1,0 +1,7 @@
+{
+    "openAiUri": "",
+    "openAiKey": "",
+    "openAiDeployment": "",
+
+    "historyLength": 10
+}
