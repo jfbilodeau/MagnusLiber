@@ -7,7 +7,7 @@ using Azure.AI.OpenAI;
 class Configuration {
     public string OpenAiUri { get; set; } = "";
     public string OpenAiKey { get; set; } = "";
-    public string OpenAiDeployment { get; set; } = "";
+    public string deployment { get; set; } = "";
 
     public int HistoryLength { get; set; }
 }
@@ -86,6 +86,7 @@ class Program
                 default:
                     string response = await GetAssistantResponse(prompt);
                     Console.WriteLine(response);
+                    Console.WriteLine();  // Add a blank line after the response.
                     break;
             }
         }
@@ -109,7 +110,7 @@ class Program
         List<ChatRequestMessage> conversation = [systemMessage, ..chatHistory, userMessage];
 
         // Prepare chat completions options.
-        ChatCompletionsOptions chatCompletionsOptions = new(configuration.OpenAiDeployment, conversation) {
+        ChatCompletionsOptions chatCompletionsOptions = new(configuration.deployment, conversation) {
             // The following lines are included for demonstration purposes.
             // Adjust the following as necessary.
             Temperature = 0.7f,
