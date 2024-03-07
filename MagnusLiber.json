@@ -3,5 +3,6 @@
     "openAiKey": "",
     "deployment": "",
 
-    "historyLength": 10
+    "historyLength": 10,
+    "maxTokens": 1500
 }
