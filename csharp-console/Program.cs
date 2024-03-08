@@ -10,6 +10,7 @@ class Configuration {
     public string deployment { get; set; } = "";
 
     public int HistoryLength { get; set; }
+    public int MaxTokens { get; set; }
 }
 
 class Messages {
@@ -111,13 +112,18 @@ class Program
 
         // Prepare chat completions options.
         ChatCompletionsOptions chatCompletionsOptions = new(configuration.deployment, conversation) {
+            // MaxTokens is the maximum number of tokens to generate.
+            MaxTokens = configuration.MaxTokens,
+            // The number of completions to generate for each prompt.
+            // See note below
+            ChoiceCount = 1,
+
             // The following lines are included for demonstration purposes.
             // Adjust the following as necessary.
-            Temperature = 0.7f,
-            MaxTokens = 1500,
-            FrequencyPenalty = 0,
-            PresencePenalty = 0,
-            ChoiceCount = 1,  // See note below.
+            Temperature = 1.0f,
+            NucleusSamplingFactor = 1.0f,  // AKA top-p sampling
+            FrequencyPenalty = 0.0f,
+            PresencePenalty = 0.0f,
         };
     
         // Send the request to OpenAI.

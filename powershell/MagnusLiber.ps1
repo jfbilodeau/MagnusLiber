@@ -4,16 +4,16 @@ if (Test-Path "../MagnusLiber.dev.json") {
 } else {
     $configurationPath = "../MagnusLiber.json"
 }
-$messagesPath = "../Messages.json"
-$systemMessagePath = "../SystemMessage.txt"
 
 # Load configuration
 $configuration = Get-Content $configurationPath | ConvertFrom-Json
 
 # Load messages
+$messagesPath = "../Messages.json"
 $messages = Get-Content $messagesPath | ConvertFrom-Json
 
 # Load system message
+$systemMessagePath = "../SystemMessage.txt"
 $systemMessageText = Get-Content $systemMessagePath
 
 $systemMessage = @{
@@ -49,7 +49,7 @@ Write-Host $messages.Greeting
 $running = $true
 while ($running) {
     # Prompt user for question
-    $query = Read-Host -Prompt $messages.prompt
+    $query = Read-Host -Prompt "$($messages.prompt)"
 
     switch ($query) {
         "" {
