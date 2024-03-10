@@ -1,2 +1,6 @@
 # Do not include `MagnusLiber.dev.json` in the repository
 MagnusLiber.dev.json
+
+# Ignore out-of-directory builds
+libs/*
+more/*
