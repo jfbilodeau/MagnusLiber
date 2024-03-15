@@ -2,11 +2,11 @@ package main
 
 import (
 	"bufio"
-	"context"
+	"bytes"
 	"encoding/json"
 	"fmt"
-	azopenai "github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai"
-	azcore "github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"io"
+	"net/http"
 	"os"
 )
 
@@ -26,6 +26,49 @@ type Messages struct {
 	Prompt     string `json:"prompt"`
 	EmptyInput string `json:"emptyInput"`
 	Exit       string `json:"exit"`
+}
+
+// The Azure OpenAI SDK for Go is incomplete at this time so we will define some of the structure
+// that would be present in the SDK. This is a temporary measure until the SDK is updated.
+
+// Chat message roles
+const (
+	ChatRoleSystem    = "system"
+	ChatRoleUser      = "user"
+	ChatRoleAssistant = "assistant"
+)
+
+// ChatMessage chat message structure
+type ChatMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+// ChatCompletionsOptions chat completions options
+type ChatCompletionsOptions struct {
+	Messages  []ChatMessage `json:"messages"`
+	MaxTokens int32         `json:"max_tokens"`
+	N         int32         `json:"n"` // Maximum number of completions to generate
+
+	// The following parameters are provided as examples. They are not required and are set to their default values.
+	FrequencyPenalty float32 `json:"frequency_penalty"`
+	PresencePenalty  float32 `json:"presence_penalty"`
+	Temperature      float32 `json:"temperature"`
+	TopP             float32 `json:"top_p"`
+}
+
+type ChatCompletionChoice struct {
+	Message      ChatMessage `json:"message"`
+	FinishReason string      `json:"finish_reason"`
+	Index        int         `json:"index"`
+}
+
+type ChatCompletionResponse struct {
+	Id      string                 `json:"id"`      // Unique id for the completion
+	Object  string                 `json:"object"`  // Set to `text_completion`
+	Created int64                  `json:"created"` // Unix timestamp
+	Model   string                 `json:"model"`   // The model used for the completion
+	Choices []ChatCompletionChoice `json:"choices"` // The completions
 }
 
 func main() {
@@ -59,7 +102,7 @@ func main() {
 		panic("Could not load messages file")
 	}
 
-	// User messages
+	// UI messages
 	var messages Messages
 
 	err = json.Unmarshal(messageFile, &messages)
@@ -77,29 +120,19 @@ func main() {
 	systemMessageString := string(systemMessageBytes)
 
 	// Create system message
-	chatRequestSystemMessage := azopenai.ChatRequestSystemMessage{
-		Content: &systemMessageString,
-		//role:    &azopenai.ChatRoleSystem,
+	systemMessage := ChatMessage{
+		Content: systemMessageString,
+		Role:    ChatRoleSystem,
 	}
 
-	systemMessage := chatRequestSystemMessage.GetChatRequestMessage()
+	// URL to the OpenAI endpoint
+	url := configuration.OpenAiUri + "openai/deployments/" + configuration.Deployment + "/chat/completions?api-version=2023-05-15"
 
 	// Chat history
-	chatHistory := make([]azopenai.ChatRequestMessageClassification, 0)
+	chatHistory := make([]ChatMessage, 0)
 
-	// Prepare OpenAI client options
-	options := azopenai.ClientOptions{}
-
-	// Create OpenAI client
-	client, err := azopenai.NewClientWithKeyCredential(
-		configuration.OpenAiUri,
-		azcore.NewKeyCredential(configuration.OpenAiKey),
-		&options,
-	)
-
-	if err != nil {
-		panic("Could not create OpenAI client")
-	}
+	// Create an HTTP client
+	httpClient := http.Client{}
 
 	// Run main application loop
 	fmt.Println(messages.Greeting)
@@ -123,61 +156,81 @@ func main() {
 
 		default:
 			// Create user message
-			chatRequestUserMessage := azopenai.ChatRequestUserMessage{
-				Content: azopenai.NewChatRequestUserMessageContent(prompt),
+			userMessage := ChatMessage{
+				Role:    ChatRoleUser,
+				Content: prompt,
 			}
-			userMessage := chatRequestUserMessage.GetChatRequestMessage()
 
 			// Create conversation history
-			conversation := []azopenai.ChatRequestMessageClassification{
+			conversation := []ChatMessage{
 				systemMessage,
 			}
+
 			conversation = append(conversation, chatHistory...)
 			conversation = append(conversation, userMessage)
 
-			// Number of completions to generate
-			n := int32(1)
-
-			// Sample parameters
-			frequencyPenalty := float32(0.0)
-			presencePenalty := float32(0.0)
-			temperature := float32(1.0)
-			topP := float32(1.0)
-
 			// Create chat completion context
-			chatCompletionOptions := azopenai.ChatCompletionsOptions{
-				Messages:       conversation,
-				MaxTokens:      &configuration.MaxTokens,
-				DeploymentName: &configuration.Deployment,
-				N:              &n, // Maximum number of completions to generate
+			chatCompletionOptions := ChatCompletionsOptions{
+				Messages:  conversation,
+				MaxTokens: configuration.MaxTokens,
+				N:         1, // Maximum number of completions to generate
 
 				// The following parameters are provided as examples. They are not required and are set to their default values.
-				FrequencyPenalty: &frequencyPenalty,
-				PresencePenalty:  &presencePenalty,
-				Temperature:      &temperature,
-				TopP:             &topP,
+				FrequencyPenalty: 0.0,
+				PresencePenalty:  0.0,
+				Temperature:      1.0,
+				TopP:             1.0,
 			}
 
-			// Get chat completions
-			response, err := client.GetChatCompletions(
-				context.Background(),
-				chatCompletionOptions,
-				nil,
-			)
+			// Convert to JSON string
+			body, err := json.Marshal(chatCompletionOptions)
 
-			// Check for error
 			if err != nil {
-				panic("Could not get chat completions. Reason: " + err.Error())
+				panic("Could not marshal chat completion options")
+			}
+
+			// Create a new HTTP request
+			httpRequest, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+			if err != nil {
+				panic("Could not create HTTP request")
+			}
+
+			// Set the request headers
+			httpRequest.Header.Set("Content-Type", "application/json")
+			httpRequest.Header.Set("api-key", configuration.OpenAiKey)
+
+			// Send the request
+			httpResponse, err := httpClient.Do(httpRequest)
+			if err != nil {
+				panic("Could not send HTTP request")
+			}
+
+			// Read the body
+			defer httpResponse.Body.Close()
+
+			buffer, err := io.ReadAll(httpResponse.Body)
+			if err != nil {
+				panic("Could not read HTTP response body")
+			}
+
+			// Print buffer
+			fmt.Println(string(buffer))
+
+			// Parse body into ChatCompletionResponse
+			var response ChatCompletionResponse
+			err = json.Unmarshal(buffer, &response)
+			if err != nil {
+				panic("Could not unmarshal chat completion response")
 			}
 
 			// Get the text of the response
 			assistantResponseText := response.Choices[0].Message.Content
 
 			// Create assistant message
-			chatRequestAssistantMessage := azopenai.ChatRequestAssistantMessage{
+			assistantResponse := ChatMessage{
 				Content: assistantResponseText,
+				Role:    ChatRoleAssistant,
 			}
-			assistantResponse := chatRequestAssistantMessage.GetChatRequestMessage()
 
 			// Manage chat history, keeping it within the configured history length
 			if len(chatHistory) >= configuration.HistoryLength {
@@ -185,7 +238,7 @@ func main() {
 			}
 			chatHistory = append(chatHistory, userMessage, assistantResponse)
 
-			fmt.Println(response)
+			fmt.Println(assistantResponseText)
 			fmt.Println() // Add a blank line after the response
 		}
 	}

@@ -4,3 +4,4 @@ MagnusLiber.dev.json
 # Ignore out-of-directory builds
 libs/*
 more/*
+tools/*

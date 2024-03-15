@@ -1,9 +1,7 @@
 ## C++ OpenAI Example
 
-# Boost
+Build using `vcpkg` and `cmake`
 
-To minimize dependencies, this example uses the Boost library via CMake `FetchContent` module. This means that CMake generation may take a number of minutes to check out the Boost library.
+Using [Boost](https://www.boost.org) for JSON and HTTPS
 
-
-Initial build will be long
-
+There are simpler library for JSON and HTTPS, but I wanted to favour a well-established library this demo.
