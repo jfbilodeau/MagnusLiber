@@ -1,0 +1,15 @@
+{
+  "name" : "magnusliber",
+  "version-string" : "1.0.0",
+  "builtin-baseline" : "7f9f0e44db287e8e67c0e888141bfa200ab45121",
+  "dependencies" : [ {
+    "name" : "boost-asio",
+    "version>=" : "1.84.0"
+  }, {
+    "name" : "boost-json",
+    "version>=" : "1.84.0"
+  }, {
+    "name" : "openssl",
+    "version>=" : "3.2.1"
+  } ]
+}
