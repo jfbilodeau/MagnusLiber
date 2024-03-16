@@ -10,7 +10,7 @@ $configuration = Get-Content $configurationPath | ConvertFrom-Json
 
 # Load messages
 $messagesPath = "../Messages.json"
-$messages = Get-Content $messagesPath | ConvertFrom-Json
+$uiMessages = Get-Content $messagesPath | ConvertFrom-Json
 
 # Load system message
 $systemMessagePath = "../SystemMessage.txt"
@@ -43,18 +43,18 @@ function Get-AssistantResponse {
 }
 
 # Display greeting
-Write-Host $messages.Greeting
+Write-Host $uiMessages.Greeting
 
 # Start chat loop
 $running = $true
 while ($running) {
     # Prompt user for question
-    $query = Read-Host -Prompt "$($messages.prompt)"
+    $query = Read-Host -Prompt "$($uiMessages.prompt)"
 
     switch ($query) {
         "" {
             # Empty input, display message and continue loop 
-            Write-Host $messages.emptyInput 
+            Write-Host $uiMessages.emptyInput 
 
             break
         }
@@ -92,15 +92,18 @@ while ($running) {
                 max_tokens = $configuration.maxTokens
 
                 # Sample optional parameters with their default values
-                temperature = 1
-                presence_penalty = 0
-                frequency_penalty = 0
+                temperature = 0.7
+                top_p = 0.95
+                presence_penalty = 0.0
+                frequency_penalty = 0.0
             } | ConvertTo-Json
+
+            Write-Host "$($uri)"
 
             # Prepare headers
             $headers = @{
                 "Content-Type" = "application/json"
-                "api-key" = $configuration.openAiKey
+                "Api-Key" = $configuration.openAiKey
             }
 
             # Send request to OpenAI API
@@ -131,4 +134,4 @@ while ($running) {
     }
 }
 
-Write-Host $messages.Exit
+Write-Host $uiMessages.Exit

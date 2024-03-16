@@ -13,7 +13,7 @@ class Configuration {
     public int MaxTokens { get; set; }
 }
 
-class Messages {
+class UiMessages {
     // Messages
     public string Greeting { get; set; } = "Greeting not set";
     public string Prompt { get; set; } = "Prompt not set";
@@ -27,7 +27,7 @@ class Program
     private readonly Configuration configuration;
 
     // Messages
-    private readonly Messages messages;
+    private readonly UiMessages uiMessages;
 
     //The OpenAI client
     private readonly OpenAIClient client;
@@ -47,7 +47,7 @@ class Program
 
         // Load messages
         var jsonString = File.ReadAllText("../Messages.json");
-        messages = JsonSerializer.Deserialize<Messages>(jsonString, new JsonSerializerOptions() {
+        uiMessages = JsonSerializer.Deserialize<UiMessages>(jsonString, new JsonSerializerOptions() {
             PropertyNameCaseInsensitive = true  // Allow camelCase property names
         }) ?? throw new Exception("Could not load messages file");
 
@@ -63,20 +63,20 @@ class Program
     }
 
     public async Task Run() {
-        Console.WriteLine(messages.Greeting);
+        Console.WriteLine(uiMessages.Greeting);
 
         bool running = true;
 
         while (running)
         {
-            Console.WriteLine(messages.Prompt);
+            Console.WriteLine(uiMessages.Prompt);
 
             string prompt = (Console.ReadLine() ?? "").Trim();
 
             switch (prompt)
             {
                 case "":
-                    Console.WriteLine(messages.EmptyInput);
+                    Console.WriteLine(uiMessages.EmptyInput);
                     break;
 
                 case "quit":
@@ -92,7 +92,7 @@ class Program
             }
         }
 
-        Console.WriteLine(messages.Exit);
+        Console.WriteLine(uiMessages.Exit);
     }
 
     private async Task<string> GetAssistantResponse(string prompt) {
@@ -116,12 +116,12 @@ class Program
             MaxTokens = configuration.MaxTokens,
             // The number of completions to generate for each prompt.
             // See note below
-            ChoiceCount = 1,
+            ChoiceCount = 1,  // `n` in JSON message to OpenAI
 
             // The following lines are included for demonstration purposes.
             // Adjust the following as necessary.
-            Temperature = 1.0f,
-            NucleusSamplingFactor = 1.0f,  // AKA top-p sampling
+            Temperature = 0.7f,
+            NucleusSamplingFactor = 0.7f,  // AKA top_p sampling
             FrequencyPenalty = 0.0f,
             PresencePenalty = 0.0f,
         };
