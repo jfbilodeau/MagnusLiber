@@ -10,7 +10,9 @@ if ! [ -x "$(command -v jq)" ]; then
   exit 1
 fi
 
-# Read configuration
+# Note: We will assume `curl` and `awk` are installed.
+
+# Load configuration
 configurationFileName='../MagnusLiber.dev.json'
 if [ ! -f $configurationFileName ]; then
     $configurationFileName="../MagnusLiber.json"
@@ -26,7 +28,7 @@ declare -A configuration=(
     [maxTokens]=$(echo $configurationJson | jq -r .maxTokens)
 )
 
-# Read UI messages
+# Load UI messages
 uiMessagesJson=$(cat "../Messages.json")
 
 declare -A uiMessages=(
@@ -36,12 +38,11 @@ declare -A uiMessages=(
     [exit]=$(echo $uiMessagesJson | jq -r .exit)
 )
 
-# Read system message.
+# Load system message.
 systemMessageText=$(awk -v RS='\r?\n' '{printf "%s\\n",$0}' ../SystemMessage.txt)
-# systemMessageText=$(cat ../SystemMessage.txt)
 systemMessage="{\"role\":\"system\",\"content\":\"$systemMessageText\"}"
 
-# Create history
+# Create conversation history
 history=()
 
 # Create user
