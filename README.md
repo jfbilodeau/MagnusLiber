@@ -1,7 +1,9 @@
 # Magnus Liber Imperatorum
 # A set of Azure OpenAI demos
 
-Welcome to **Magnus Liber Imperatorum**, a set of Azure OpenAI demos written in different programming languages. The goal of the demos is to illustrate basic use of the [OpenAI chat completion API](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#chat-completions), including request parameters, response and conversation management.
+Welcome to **Magnus Liber Imperatorum**, the Great Book of Roman Emperors.
+
+Magnus Liber is an Azure OpenAI demos written in different programming languages. The goal of the demos is to illustrate basic use of the [OpenAI chat completion API](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#chat-completions), including request parameters, response and conversation management.
 
 ## Getting started
 
@@ -32,12 +34,13 @@ To run Magnus Liber in any programming language, an Azure Subscription and an Az
 - Minimize local dependencies
 - Favour Azure OpenAI SDK when available
 - For simplicity, written as one function
-- For simplicity, there is very little error handling
+- For clarity, there is very little error handling
 
 
 ## Programming Languages demos
 - [C++](./cpp/README.md)
 - [C# (Console)](./csharp-console/README.md)
+- [Delphi (Console)](./delphi-console/README.md)
 - [Go](./go/README.md)
 - [Java](./java/README.md)
 - [Node.js (JavaScript)](./node.js/README.md)
