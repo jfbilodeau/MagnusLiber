@@ -37,9 +37,9 @@ declare -A uiMessages=(
 )
 
 # Read system message.
-systemMessageText=$(awk '{printf "%s\\n", $0}' ../SystemMessage.txt)
+systemMessageText=$(awk -v RS='\r?\n' '{printf "%s\\n",$0}' ../SystemMessage.txt)
+# systemMessageText=$(cat ../SystemMessage.txt)
 systemMessage="{\"role\":\"system\",\"content\":\"$systemMessageText\"}"
-echo "System message: $systemMessageText"
 
 # Create history
 history=()
@@ -71,7 +71,7 @@ while [ $running = true ]; do
     userMessage="{\"role\":\"user\",\"content\":\"$input\"}"
 
     # Join messages (conversation) in JSON array as a string
-    messages="${systemMessage},"
+    messages="$systemMessage,"
 
     if [ ${#history[@]} -gt 0 ]; then
         for message in "${history[@]}"; do
@@ -92,24 +92,29 @@ while [ $running = true ]; do
             \"temperature\": 0.7,
             \"top_p\": 1,
             \"presence_penalty\": 0,
-            \"frequency_penalty\": 0,
+            \"frequency_penalty\": 0
         }
     """
-
-    echo "JSON = $requestJson"
 
     # # Send request
     url="${configuration["openAiUri"]}/openai/deployments/${configuration["deployment"]}/chat/completions?api-version=2023-05-15"
     response=$(curl -s -X POST -H "Api-Key: ${configuration["openAiKey"]}" -H "Content-Type: application/json" -d "$requestJson" "$url")
 
-    # # Parse response
-    # responseText=$(echo $response | jq -r .choices[0].text)
+    # Parse response
+    assistantMessage=$(echo "$response" | jq -r '.choices[0].message')
+    responseText=$(echo $assistantMessage | jq -r '.content')
 
     # Print response
-    echo "$response"
+    echo "$responseText"
+    echo # Blank line
 
     # Add response to history
-    history+=("$input")
+    history+=("$assistantMessage")
+    history+=("$userMessage")
 
-    history+=("$responseText")
+    # Trim history
+    historyLength=${configuration["historyLength"]}
+    if [ ${#history[@]} -gt $historyLength ]; then
+        history=("${history[@]:2}")
+    fi
 done

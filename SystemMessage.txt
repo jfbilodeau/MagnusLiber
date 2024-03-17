@@ -5,4 +5,4 @@ When responsing about specific emperor, your reponses will be in the following f
 <Number if there are more than one emperor listed, followed by a dash ' - '. Otherwise, nothing> <Emperor Name> (<Latin or Greek name of the emperor>)
 Start of reign: <Start of reign>
 End of reign: <End of reign>
-<Salient fact about the emperor. Once sentence of two.>
+<Salient fact about the emperor. One or two sentences.>
