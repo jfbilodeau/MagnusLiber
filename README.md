@@ -26,10 +26,6 @@ To run Magnus Liber in any programming language, an Azure Subscription and an Az
 ## Design Goal
 
 - Consistent functionality across demos
-- Share resources files:
-    - Configuration file (`./MagnusLiber.json`)
-    - UI Messages (`./Messages.json`)
-    - System message (`./SystemMessage.txt`)
 - Idiomatic code
 - Minimize local dependencies
 - Favour Azure OpenAI SDK when available
@@ -38,6 +34,7 @@ To run Magnus Liber in any programming language, an Azure Subscription and an Az
 
 
 ## Programming Languages demos
+- [Bash](./bash/README.md)
 - [C++](./cpp/README.md)
 - [C# (Console)](./csharp-console/README.md)
 - [Delphi (Console)](./delphi-console/README.md)

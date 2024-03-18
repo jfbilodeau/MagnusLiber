@@ -1,35 +1,10 @@
-use std::fs::File;
+use std::env;
 use std::io;
 use std::path::Path;
 
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
-use serde_json;
-
-#[derive(Serialize, Deserialize)]
-struct Configuration {
-    #[serde(alias = "openAiUri")]
-    open_ai_uri: String,
-    #[serde(alias = "openAiKey")]
-    open_ai_key: String,
-    #[serde(alias = "deployment")]
-    deployment: String,
-
-    #[serde(alias = "historyLength")]
-    history_length: i32,
-    #[serde(alias = "maxTokens")]
-    max_tokens: i32,
-}
-
-#[derive(Serialize, Deserialize)]
-struct UiMessages {
-    greeting: String,
-    prompt: String,
-    #[serde(alias = "emptyPrompt")]
-    empty_prompt: String,
-    exit: String,
-}
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -71,28 +46,12 @@ struct ChatResponseBody {
 #[tokio::main]
 async fn main() {
     // Read configuration
-    let mut path = Path::new("../MagnusLiber.dev.json");
+    let open_ai_url = env::var("OPENAI_URL").expect("OPENAI_URL environment variable must be set");
+    let open_ai_key = env::var("OPENAI_KEY").expect("OPENAI_KEY environment variable must be set");
+    let open_ai_deployment = env::var("OPENAI_DEPLOYMENT").expect("OPENAI_DEPLOYMENT environment variable must be set");
 
-    if !path.exists() {
-        path = Path::new("../MagnusLiber.json");
-    }
-
-    if !path.exists() {
-        panic!("{} file not found", path.to_str().unwrap());
-    }
-
-    let reader = File::open(path).unwrap();
-    let configuration: Configuration = serde_json::from_reader(reader).unwrap();
-
-    // Load UI messages
-    let path = Path::new("../messages.json");
-
-    if !path.exists() {
-        panic!("{} messages file not found", path.to_str().unwrap());
-    }
-
-    let reader = File::open(path).unwrap();
-    let ui_messages: UiMessages = serde_json::from_reader(reader).unwrap();
+    let history_length = 10;
+    let max_tokens = 150;
 
     // Load system message
     let path = Path::new("../SystemMessage.txt");
@@ -104,26 +63,40 @@ async fn main() {
 
     // Initialize OpenAI client
     let url_string = format!(
-        "{}openai/deployments/{}/chat/completions?api-version=2023-05-15",
-        configuration.open_ai_uri,
-        configuration.deployment
+        "{}/openai/deployments/{}/chat/completions?api-version=2023-05-15",
+        open_ai_url,
+        open_ai_deployment
     );
 
     let url = Url::parse(&url_string).unwrap();
-    let host = url.host_str().unwrap().to_string();
 
     // Conversation history
     let mut history: Vec<ChatMessage> = Vec::new();
 
+    // Build the HTTP client
+    let mut headers = HeaderMap::new();
+
+    headers.insert(
+        "api-key",
+        HeaderValue::from_str(&open_ai_key).unwrap(),
+    );
+
+    let client = reqwest::ClientBuilder::new()
+        .default_headers(headers)
+        .build()
+        .unwrap();
+
+
+
     // Greet user
-    println!("{}", ui_messages.greeting);
+    println!("{}", "Salve, seeker of wisdom. What would you like to know about our glorious Roman and Byzantine leaders?");
 
     // Start main loop
     let mut running = true;
 
     while running {
         // Get user input
-        println!("{}", ui_messages.prompt);
+        println!("{}", "Quaeris quid (What is your question)?");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
@@ -131,7 +104,7 @@ async fn main() {
 
         match input.as_str() {
             "" => {
-                println!("{}", ui_messages.empty_prompt);
+                println!("{}", "Me paenitet, non audivi te. (I'm sorry, I didn't hear you)");
                 continue;
             }
 
@@ -157,7 +130,7 @@ async fn main() {
                 // Prepare chat body request
                 let chat_body = ChatRequestBody {
                     messages: conversation,
-                    max_tokens: configuration.max_tokens,
+                    max_tokens,
                     n: 1,  // Number of responses to generate
 
                     // The following parameters are provide as an example
@@ -171,22 +144,6 @@ async fn main() {
                 };
 
                 // Send request to Azure OpenAI
-                let mut headers = HeaderMap::new();
-
-                // headers.insert(
-                //     HOST,
-                //     HeaderValue::from_str(&host).unwrap()
-                // );
-                headers.insert(
-                    "api-key",
-                    HeaderValue::from_str(&configuration.open_ai_key).unwrap(),
-                );
-
-                let client = reqwest::ClientBuilder::new()
-                    .default_headers(headers)
-                    .build()
-                    .unwrap();
-
                 let response = client.post(url.clone())
                     .json(&chat_body)
                     .send()
@@ -203,20 +160,20 @@ async fn main() {
                 let assistant_message = completion.choices[0].message.clone();
 
                 // Print response
-                println!("{}", assistant_message.content);
+                println!("{}\n", assistant_message.content);
 
                 // Add user and assistant message to history
                 history.push(user_message);
                 history.push(assistant_message);
 
                 // Trim history
-                if history.len() > configuration.history_length as usize {
-                    history = history[history.len() - configuration.history_length as usize..].to_vec();
+                if history.len() > history_length as usize {
+                    history = history[history.len() - history_length as usize..].to_vec();
                 }
             }
         }
     }
 
     // Display quit message
-    println!("{}", ui_messages.exit);
+    println!("{}", "Vale et gratias tibi ago for using Magnus Liber Imperatorum.");
 }

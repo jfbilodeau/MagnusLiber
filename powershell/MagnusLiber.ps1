@@ -1,60 +1,42 @@
-# Assuming configuration and messages are stored in JSON files
-if (Test-Path "../MagnusLiber.dev.json") {
-    $configurationPath = "../MagnusLiber.dev.json"
-} else {
-    $configurationPath = "../MagnusLiber.json"
+# Configuration
+$openAiUrl = $env:OPENAI_URL
+$openAiKey = $env:OPENAI_KEY
+$openAiDeployment = $env:OPENAI_DEPLOYMENT
+
+# Configuration check
+if (-not $openAiUrl -or -not $openAiKey -or -not $openAiDeployment) {
+    Write-Error "Please set the OPENAI_URL, OPENAI_KEY and OPENAI_DEPLOYMENT environment variables"
+    exit
 }
 
-# Load configuration
-$configuration = Get-Content $configurationPath | ConvertFrom-Json
+# The number of messages to keep in chat history
+$historyLength = 10
+# The maximum number of tokens in the response
+$maxTokens = 150
 
-# Load messages
-$messagesPath = "../Messages.json"
-$uiMessages = Get-Content $messagesPath | ConvertFrom-Json
-
-# Load system message
-$systemMessagePath = "../SystemMessage.txt"
-$systemMessageText = Get-Content $systemMessagePath
+$systemMessageText = Get-Content -Path "../SystemMessage.txt" -Raw
 
 $systemMessage = @{
     role = "system"
-    content = "$systemMessageText"
+    content = $systemMessageText
 }
 
 # Initialize chat history
 $chatHistory = @()
 
-function Get-AssistantResponse {
-    param (
-        [string]$Prompt
-    )
-
-    # Simplified to show structure - actual API call to OpenAI would go here
-    # This is a placeholder to represent an API call
-    $Response = "Simulated response to '$Prompt'"
-
-    # Update chat history, maintaining the configured history length
-    $ChatHistory += $Prompt, $Response
-    while ($ChatHistory.Count -gt $configuration.historyLength) {
-        $ChatHistory = $ChatHistory | Select-Object -Skip 2
-    }
-
-    return $Response
-}
-
 # Display greeting
-Write-Host $uiMessages.Greeting
+Write-Host "Salve, seeker of wisdom. What would you like to know about our glorious Roman and Byzantine leaders?"
 
 # Start chat loop
 $running = $true
 while ($running) {
     # Prompt user for question
-    $query = Read-Host -Prompt "$($uiMessages.prompt)"
+    $query = Read-Host -Prompt "Quaeris quid (What is your question)?"
 
     switch ($query) {
         "" {
             # Empty input, display message and continue loop 
-            Write-Host $uiMessages.emptyInput 
+            Write-Host "Me paenitet, non audivi te. (I'm sorry, I didn't hear you)"
 
             break
         }
@@ -79,7 +61,7 @@ while ($running) {
             $messages = @( $systemMessage ) + $chatHistory + @( $userMessage )
 
             # URI to OpenAI API
-            $uri = "$($configuration.openAiUri)/openai/deployments/$($configuration.deployment)/chat/completions?api-version=2023-05-15"
+            $uri = "$openAiUrl/openai/deployments/$openAiDeployment/chat/completions?api-version=2023-05-15"
 
             # Request body
             $body = @{
@@ -89,7 +71,7 @@ while ($running) {
                 # Number of responses to generate
                 n = 1
                 # Max number of tokens in response
-                max_tokens = $configuration.maxTokens
+                max_tokens = $maxTokens
 
                 # Sample optional parameters with their default values
                 temperature = 0.7
@@ -98,12 +80,10 @@ while ($running) {
                 frequency_penalty = 0.0
             } | ConvertTo-Json
 
-            Write-Host "$($uri)"
-
             # Prepare headers
             $headers = @{
                 "Content-Type" = "application/json"
-                "Api-Key" = $configuration.openAiKey
+                "Api-Key" = $openAiKey
             }
 
             # Send request to OpenAI API
@@ -127,11 +107,11 @@ while ($running) {
             )
 
             # Make sure chat history is not more than $configuration.historyLength
-            while ($chatHistory.Count -gt $configuration.historyLength * 2) {
+            while ($chatHistory.Count -gt $historyLength * 2) {
                 $chatHistory = $chatHistory | Select-Object -Skip 2
             }
         }
     }
 }
 
-Write-Host $uiMessages.Exit
+Write-Host "Vale et gratias tibi ago for using Magnus Liber Imperatorum."

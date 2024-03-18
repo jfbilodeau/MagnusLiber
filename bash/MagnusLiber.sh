@@ -1,44 +1,26 @@
 #!/usr/bin/env bash
 
-# Make sure 'jq' is installed.
-if ! [ -x "$(command -v jq)" ]; then
-  echo 'Error: `jq` is not installed.' >&2
-  echo 'Please install `jq` before running this script.' >&2
-  echo ' -> Ubuntu: `sudo apt-get install jq`' >&2
-  echo ' -> CentOS: `sudo yum install jq`' >&2
-  echo ' -> Mac:    `brew install jq`' >&2
-  exit 1
+# Make sure `jq` is installed
+if ! command -v jq &> /dev/null; then
+    echo 'Error: `jq` is not installed.' >&2
+    echo 'Please install `jq` before running this script.' >&2
+    echo ' -> Ubuntu: `sudo apt-get install jq`' >&2
+    echo ' -> CentOS: `sudo yum install jq`' >&2
+    echo ' -> Mac:    `brew install jq`' >&2
+    exit 1
 fi
 
-# Note: We will assume `curl` and `awk` are installed.
-
-# Load configuration
-configurationFileName='../MagnusLiber.dev.json'
-if [ ! -f $configurationFileName ]; then
-    $configurationFileName="../MagnusLiber.json"
+# Make sure environment variables are set
+if [[ -z "$OPENAI_URL" ]] || [[ -z "$OPENAI_KEY" ]] || [[ -z "$OPENAI_DEPLOYMENT" ]]; then
+    echo "Please set the OPENAI_URL, OPENAI_KEY and OPENAI_DEPLOYMENT environment variables."
+    exit 1
 fi
 
-configurationJson=$(cat $configurationFileName)
+# Note: This script assumes `curl` and `awk` are installed.
+historyLength=10
+maxTokens=150
 
-declare -A configuration=(
-    [openAiUri]=$(echo $configurationJson | jq -r .openAiUri)
-    [openAiKey]=$(echo $configurationJson | jq -r .openAiKey)
-    [deployment]=$(echo $configurationJson | jq -r .deployment)
-    [historyLength]=$(echo $configurationJson | jq .historyLength)
-    [maxTokens]=$(echo $configurationJson | jq -r .maxTokens)
-)
-
-# Load UI messages
-uiMessagesJson=$(cat "../Messages.json")
-
-declare -A uiMessages=(
-    [greeting]=$(echo $uiMessagesJson | jq -r .greeting)
-    [prompt]=$(echo $uiMessagesJson | jq -r .prompt)
-    [emptyPrompt]=$(echo $uiMessagesJson | jq -r .emptyPrompt)
-    [exit]=$(echo $uiMessagesJson | jq -r .exit)
-)
-
-# Load system message.
+# Set system message.
 systemMessageText=$(awk -v RS='\r?\n' '{printf "%s\\n",$0}' ../SystemMessage.txt)
 systemMessage="{\"role\":\"system\",\"content\":\"$systemMessageText\"}"
 
@@ -46,19 +28,19 @@ systemMessage="{\"role\":\"system\",\"content\":\"$systemMessageText\"}"
 history=()
 
 # Create user
-echo "${uiMessages["greeting"]}"
+echo "Salve, seeker of wisdom. What would you like to know about our glorious Roman and Byzantine leaders?"
 
 # Start loop
 running=true
 
 while [ $running = true ]; do
     # Prompt user
-    echo "${uiMessages["prompt"]}"
+    echo "Quaeris quid (What is your question)?"
     read -r input
 
     # Check if input is empty
     if [ -z "$input" ]; then
-        echo "${uiMessages["emptyPrompt"]}"
+        echo "Me paenitet, non audivi te. (I'm sorry, I didn't hear you)"
         continue
     fi
 
@@ -86,9 +68,9 @@ while [ $running = true ]; do
     requestJson="""
         {
             \"messages\": [ $messages ],
-            \"model\": \"${configuration["deployment"]}\",
+
             \"n\": 1,
-            \"max_tokens\": ${configuration["maxTokens"]},
+            \"max_tokens\": $maxTokens,
 
             \"temperature\": 0.7,
             \"top_p\": 1,
@@ -98,11 +80,17 @@ while [ $running = true ]; do
     """
 
     # # Send request
-    url="${configuration["openAiUri"]}/openai/deployments/${configuration["deployment"]}/chat/completions?api-version=2023-05-15"
-    response=$(curl -s -X POST -H "Api-Key: ${configuration["openAiKey"]}" -H "Content-Type: application/json" -d "$requestJson" "$url")
+    url="$OPENAI_URL/openai/deployments/$OPENAI_DEPLOYMENT/chat/completions?api-version=2023-05-15"
+    response=$(curl -s -X POST -H "Api-Key: $OPENAI_KEY" -H "Content-Type: application/json" -d "$requestJson" "$url")
 
     # Parse response
     assistantMessage=$(echo "$response" | jq -r '.choices[0].message')
+
+    if [ "null" == "$assistantMessage" ]; then
+        echo "Error getting assistant chat response"
+        echo "Reason: $response"
+        exit 1
+    fi
     responseText=$(echo $assistantMessage | jq -r '.content')
 
     # Print response
@@ -114,8 +102,9 @@ while [ $running = true ]; do
     history+=("$userMessage")
 
     # Trim history
-    historyLength=${configuration["historyLength"]}
     if [ ${#history[@]} -gt $historyLength ]; then
         history=("${history[@]:2}")
     fi
 done
+
+echo "Vale et gratias tibi ago for using Magnus Liber Imperatorum."

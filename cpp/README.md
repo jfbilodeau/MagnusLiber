@@ -1,4 +1,15 @@
-## C++ OpenAI Example
+# C++ OpenAI Example
+
+## Quick start
+
+```shell
+cd cpp
+cmake -DCMAKE_TOOLCHAIN_FILE=<path_to_vcpkg>/vcpkg.cmake -B ./build
+cmake -B ./build -T MagnusLiber
+./build/MagnusLiber
+```
+
+## Notes
 
 Build using `vcpkg` and `cmake`
 

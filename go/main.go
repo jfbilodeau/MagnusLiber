@@ -10,24 +10,6 @@ import (
 	"os"
 )
 
-// Configuration structure
-type Configuration struct {
-	OpenAiUri     string `json:"openAiUri"`
-	OpenAiKey     string `json:"openAiKey"`
-	Deployment    string `json:"deployment"`
-	HistoryLength int    `json:"historyLength"`
-	// MaxTokens needs to be passed as an `int32` pointer to `azopenai.ChatCompletionsOptions`
-	MaxTokens int32 `json:"maxTokens"`
-}
-
-// Messages structure
-type Messages struct {
-	Greeting   string `json:"greeting"`
-	Prompt     string `json:"prompt"`
-	EmptyInput string `json:"emptyInput"`
-	Exit       string `json:"exit"`
-}
-
 // The Azure OpenAI SDK for Go is incomplete at this time so we will define some of the structure
 // that would be present in the SDK. This is a temporary measure until the SDK is updated.
 
@@ -72,43 +54,19 @@ type ChatCompletionResponse struct {
 }
 
 func main() {
-	// Load configuration file
-	configurationFilePath := "../MagnusLiber.json"
+	// Setup configuration
+	openAiUrl := os.Getenv("OPENAI_URL")
+	openAiKey := os.Getenv("OPENAI_KEY")
+	deployment := os.Getenv("OPENAI_DEPLOYMENT")
 
-	// Check for the presence of "../MagnusLiber.dev.json"
-	devConfigurationFound, err := os.Stat("../MagnusLiber.dev.json")
-
-	if err == nil && devConfigurationFound != nil {
-		configurationFilePath = "../MagnusLiber.dev.json"
+	// Validate configuration
+	if openAiUrl == "" && openAiKey == "" && deployment == "" {
+		fmt.Println("OpenAI environment variables are not set")
+		os.Exit(1)
 	}
 
-	configurationFile, err := os.ReadFile(configurationFilePath)
-	if err != nil {
-		panic("Could not load configuration file")
-	}
-
-	// OpenAI configuration
-	var configuration Configuration
-
-	err = json.Unmarshal(configurationFile, &configuration)
-	if err != nil {
-		panic("Failed to parse configuration file")
-	}
-
-	// Load user messages
-	messageFilePath := "../Messages.json"
-	messageFile, err := os.ReadFile(messageFilePath)
-	if err != nil {
-		panic("Could not load messages file")
-	}
-
-	// UI messages
-	var messages Messages
-
-	err = json.Unmarshal(messageFile, &messages)
-	if err != nil {
-		panic("Could not parse message file")
-	}
+	historyLength := 10
+	maxTokens := 150
 
 	// Load system message
 	systemMessagePath := "../SystemMessage.txt"
@@ -126,7 +84,7 @@ func main() {
 	}
 
 	// URL to the OpenAI endpoint
-	url := configuration.OpenAiUri + "openai/deployments/" + configuration.Deployment + "/chat/completions?api-version=2023-05-15"
+	url := openAiUrl + "openai/deployments/" + deployment + "/chat/completions?api-version=2023-05-15"
 
 	// Chat history
 	chatHistory := make([]ChatMessage, 0)
@@ -135,7 +93,7 @@ func main() {
 	httpClient := http.Client{}
 
 	// Run main application loop
-	fmt.Println(messages.Greeting)
+	fmt.Println("Salve, seeker of wisdom. What would you like to know about our glorious Roman and Byzantine leaders?")
 
 	scanner := bufio.NewScanner(os.Stdin)
 	running := true
@@ -143,13 +101,13 @@ func main() {
 	// Main application loop
 	for running {
 		// Prompt user for input
-		fmt.Println(messages.Prompt)
+		fmt.Println("Quaeris quid (What is your question)?")
 		scanner.Scan()
 		prompt := scanner.Text()
 
 		switch prompt {
 		case "":
-			fmt.Println(messages.EmptyInput)
+			fmt.Println("Me paenitet, non audivi te. (I'm sorry, I didn't hear you)")
 
 		case "quit", "exit":
 			running = false
@@ -172,14 +130,14 @@ func main() {
 			// Create chat completion context
 			chatCompletionOptions := ChatCompletionsOptions{
 				Messages:  conversation,
-				MaxTokens: configuration.MaxTokens,
+				MaxTokens: int32(maxTokens),
 				N:         1, // Maximum number of completions to generate
 
 				// The following parameters are provided as examples. They are not required and are set to their default values.
 				FrequencyPenalty: 0.0,
 				PresencePenalty:  0.0,
-				Temperature:      1.0,
-				TopP:             1.0,
+				Temperature:      0.7,
+				TopP:             0.95,
 			}
 
 			// Convert to JSON string
@@ -197,7 +155,7 @@ func main() {
 
 			// Set the request headers
 			httpRequest.Header.Set("Content-Type", "application/json")
-			httpRequest.Header.Set("api-key", configuration.OpenAiKey)
+			httpRequest.Header.Set("api-key", openAiKey)
 
 			// Send the request
 			httpResponse, err := httpClient.Do(httpRequest)
@@ -212,9 +170,6 @@ func main() {
 			if err != nil {
 				panic("Could not read HTTP response body")
 			}
-
-			// Print buffer
-			fmt.Println(string(buffer))
 
 			// Parse body into ChatCompletionResponse
 			var response ChatCompletionResponse
@@ -233,7 +188,7 @@ func main() {
 			}
 
 			// Manage chat history, keeping it within the configured history length
-			if len(chatHistory) >= configuration.HistoryLength {
+			if len(chatHistory) >= historyLength {
 				chatHistory = chatHistory[2:] // Remove the top two messages
 			}
 			chatHistory = append(chatHistory, userMessage, assistantResponse)
@@ -243,5 +198,5 @@ func main() {
 		}
 	}
 
-	fmt.Println(messages.Exit)
+	fmt.Println("Vale et gratias tibi ago for using Magnus Liber Imperatorum.")
 }

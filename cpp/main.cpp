@@ -7,33 +7,12 @@
 #include <boost/json.hpp>
 #include <boost/url.hpp>
 
+#include <cstdlib>
 #include <iostream>
-#include <filesystem>
 #include <fstream>
 #include <string>
 
-
-// OpenAI configuration
-struct Configuration
-{
-    std::string openAiUri;
-    std::string openAiKey;
-    std::string deployment;
-
-    int historyLength = -1;
-    int maxTokens = -1;
-};
-
-// Messages
-struct Messages
-{
-    std::string greeting;
-    std::string prompt;
-    std::string emptyPrompt;
-    std::string exit;
-};
-
-// Since the C++ SDK for OpenAI is not yet available, we will reproduce basic data structures here.
+// Since the C++ SDK for OpenAI is not yet available, we will reproduce some basic data structures here.
 
 // The chat message request roles
 constexpr auto ROLE_SYSTEM = "system";
@@ -53,43 +32,18 @@ struct ChatMessageRequest
 
 int main()
 {
-    // Load configuration
-    std::string configurationFileName = "../MagnusLiber.json";
+    // Setup configuration
+    auto openAiUri = std::getenv("OPENAI_URL");
+    auto openAiKey = std::getenv("OPENAI_KEY");
+    auto deployment = std::getenv("OPENAI_DEPLOYMENT");
+    auto historyLength = 10;
+    auto maxTokens = 150;
 
-    // Check for dev configuration file
-    if (std::filesystem::exists("../MagnusLiber.dev.json"))
-    {
-        configurationFileName = "../MagnusLiber.dev.json";
+    // Validate configuration
+    if (openAiUri == nullptr || openAiKey == nullptr || deployment == nullptr) {
+        std::cerr << "Error: Environment variables OPENAPI_URL, OPENAPI_KEY, and OPENAPI_DEPLOYMENT must be set." << std::endl;
+        return 1;
     }
-
-    std::ifstream configurationFile(configurationFileName);
-
-    if (!configurationFile)
-    {
-        std::cerr << "Fatal: Could not open configuration file: '" + configurationFileName + "'";
-        std::exit(1);
-    }
-
-    auto configurationJson = boost::json::parse(configurationFile);
-
-    Configuration configuration;
-
-    configuration.openAiUri = configurationJson.as_object()["openAiUri"].as_string();
-    configuration.openAiKey = configurationJson.as_object()["openAiKey"].as_string();
-    configuration.deployment = configurationJson.as_object()["deployment"].as_string();
-    configuration.historyLength = configurationJson.as_object()["historyLength"].as_int64();
-    configuration.maxTokens = configurationJson.as_object()["maxTokens"].as_int64();
-
-    // Load messages
-    std::ifstream messageFile("../Messages.json");
-    auto messagesJson = boost::json::parse(messageFile);
-
-    Messages messages;
-
-    messages.greeting = messagesJson.as_object()["greeting"].as_string();
-    messages.prompt = messagesJson.as_object()["prompt"].as_string();
-    messages.emptyPrompt = messagesJson.as_object()["emptyPrompt"].as_string();
-    messages.exit = messagesJson.as_object()["exit"].as_string();
 
     // Load system message
     auto systemMessageFile = std::ifstream("../SystemMessage.txt");
@@ -111,14 +65,13 @@ int main()
     boost::asio::ssl::context ssl_context(boost::asio::ssl::context::tlsv12_client);
 
     // Load the root certificates
-    //
     load_root_certificates(ssl_context);
     ssl_context.set_verify_mode(boost::asio::ssl::verify_peer);
 
     boost::asio::ip::tcp::resolver resolver(io_context);
 
     // URL to the OpenAI API
-    auto openAiRequestUrl = configuration.openAiUri + "openai/deployments/" + configuration.deployment + "/chat/completions?api-version=2023-05-15";
+    auto openAiRequestUrl = std::string() + openAiUri + "openai/deployments/" + deployment + "/chat/completions?api-version=2023-05-15";
     auto url = boost::urls::parse_uri(openAiRequestUrl);
     // Decompose URL
     // Forcing the use of `std::string` to avoid the need to use `std::string_view` in the rest of the code. Easier to debug.
@@ -130,7 +83,7 @@ int main()
     auto const resolved_host = resolver.resolve(openAiHost, openAiProtocol);
 
     // Greet the user
-    std::cout << messages.greeting << std::endl;
+    std::cout << "Salve, seeker of wisdom. What would you like to know about our glorious Roman and Byzantine leaders?" << std::endl;
 
     // Start the application loop
     auto running = true;
@@ -138,14 +91,14 @@ int main()
     while (running)
     {
         // Prompt the user
-        std::cout << messages.prompt << std::endl;
+        std::cout << "Quaeris quid (What is your question)?" << std::endl;
         std::string userInput;
 
         std::getline(std::cin, userInput);
 
         if (userInput.empty())
         {
-            std::cout << messages.emptyPrompt << std::endl;
+            std::cout << "Me paenitet, non audivi te. (I'm sorry, I didn't hear you)" << std::endl;
         }
         else if (userInput == "exit" || userInput == "quit")
         {
@@ -181,17 +134,17 @@ int main()
             // Create the OpenAI request body
             boost::json::object requestBodyJson = {
                 // Name of the deployment
-                {"model", configuration.deployment},
+                {"model", deployment},
                 // The conversation history
                 {"messages", conversationJson},
                 // The maximum number of tokens to generate
-                {"max_tokens", configuration.maxTokens},
+                {"max_tokens", maxTokens},
                 // The number of responses to generate
                 {"n", 1},
 
                 // The next set of parameters are optional and include as example with their default values.
-                {"temperature", 1.0},
-                {"top_p", 1.0},
+                {"temperature", 0.7},
+                {"top_p", 0.95},
                 {"presence_penalty", 0.0},
                 {"frequency_penalty", 0.0},
             };
@@ -224,11 +177,9 @@ int main()
                 11  // HTTP/1.1
             };
             req.set(boost::beast::http::field::host, openAiHost);
-            req.set("api-key", configuration.openAiKey);
+            req.set("api-key", openAiKey);
             req.body().assign(requestBody);
             req.chunked(true);
-
-            // std::cout << req << std::endl;
 
             // Send the HTTP request to the remote host
             boost::beast::http::write(stream, req);
@@ -260,7 +211,7 @@ int main()
             chatHistory.push_back({ ROLE_ASSISTANT, assistantMessage });
 
             // Trim chat history to the last `historyLength` messages
-            if (chatHistory.size() > configuration.historyLength)
+            if (chatHistory.size() > historyLength)
             {
                 // Remove the top two messages
                 chatHistory.erase(chatHistory.begin()+2, chatHistory.end());
@@ -268,5 +219,5 @@ int main()
         }
     }
 
-    std::cout << messages.exit << std::endl;
+    std::cout << "Vale et gratias tibi ago for using Magnus Liber Imperatorum." << std::endl;
 }

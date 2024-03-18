@@ -1,6 +1,9 @@
 # Do not include `MagnusLiber.dev.json` in the repository
 MagnusLiber.dev.json
 
+# Ignore .env files as they are used to store secrets and configuration settings
+.env
+
 # Ignore out-of-directory builds
 libs/*
 more/*

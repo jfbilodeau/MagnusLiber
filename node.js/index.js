@@ -3,22 +3,22 @@ const openai = require('@azure/openai')
 const readline = require('node:readline/promises')
 
 async function main() {
-    // Load OpenAI configuration
-    let configurationFileName = `../MagnusLiber.json`
+    // Configuration
+    const openAiUrl = process.env.OPENAI_URL
+    const openAiKey = process.env.OPENAI_KEY
+    const openAiDeployment = process.env.OPENAI_DEPLOYMENT
 
-    // Check if `../MagnusLiber.dev.json` exists
-    if (fs.existsSync(`../MagnusLiber.dev.json`)) {
-        configurationFileName = `../MagnusLiber.dev.json`
+    // Check for missing configuration
+    if (!openAiUrl || !openAiKey || !openAiDeployment) {
+        console.error("Please set the OPENAI_URL, OPENAI_KEY, and OPENAI_DEPLOYMENT environment variables.")
+        process.exit(1)
     }
 
-    // Load the configuration
-    const configuration = require(configurationFileName)
-
-    // Load user messages
-    const messages = require(`../Messages.json`)
+    const historyLength = 10
+    const maxTokens = 150
 
     // Load system message text
-    const systemMessageText = fs.readFileSync(`../SystemMessage.txt`, 'utf8')
+    const systemMessageText = fs.readFileSync(`../SystemMessage.txt`, `utf-8`)
 
     // Create the system message
     const systemMessage = {
@@ -28,15 +28,15 @@ async function main() {
 
     // Create the OpenAI client
     const client = new openai.OpenAIClient(
-        configuration.openAiUri,
-        new openai.AzureKeyCredential(configuration.openAiKey)
+        openAiUrl,
+        new openai.AzureKeyCredential(openAiKey)
     );
 
     // Create the chat history.
     const chatHistory = []
 
     // Greet user
-    console.log(messages.greeting)
+    console.log("Salve, seeker of wisdom. What would you like to know about our glorious Roman and Byzantine leaders?")
 
     // Use node:readline to read user input
     const rl = readline.createInterface({
@@ -48,13 +48,13 @@ async function main() {
     let running = true
     while (running) {
         // Get user input
-        console.log(messages.prompt)
+        console.log("Quaeris quid (What is your question)?")
         let query = await rl.question(``)
         query = query.trim()  // Get rid of whitespace
 
         switch (query) {
             case '':
-                console.log(messages.emptyPrompt)
+                console.log("Me paenitet, non audivi te. (I'm sorry, I didn't hear you)")
                 break
 
             case 'exit':
@@ -71,7 +71,7 @@ async function main() {
                 }
 
                 // Prepare the conversation messages.
-                const conversationMessage = [
+                const messages = [
                     systemMessage,
                     ...chatHistory,
                     userMessage,
@@ -80,20 +80,20 @@ async function main() {
                 // Prepare the options
                 const options = {
                     // The maximum number of tokens to generate
-                    maxTokens: configuration.maxTokens,
+                    max_tokens: maxTokens,
                     // The number of responses to generate
                     n: 1,
 
                     // The following are provided to reference only and as set to their default value
                     // This is not a complete list of options
-                    'temperature': 1.0,
-                    'top_p': 1.0,
-                    'frequency_penalty': 0.0,
-                    'presence_penalty': 0.0,
+                    temperature: 1.0,
+                    top_p: 1.0,
+                    frequency_penalty: 0.0,
+                    presence_penalty: 0.0,
                 }
 
                 // Send conversation to OpenAI
-                const response = await client.getChatCompletions(configuration.deployment, conversationMessage, options)
+                const response = await client.getChatCompletions(openAiDeployment, messages, options)
 
                 // Get the response text
                 const responseText = response.choices[0].message.content
@@ -110,8 +110,8 @@ async function main() {
                 })
 
                 // Trim the history if necessary
-                if (chatHistory.length > configuration.historyLength) {
-                    chatHistory.splice(0, chatHistory.length - configuration.historyLength)
+                if (chatHistory.length > historyLength) {
+                    chatHistory.splice(0, chatHistory.length - historyLength)
                 }
         }
     }
@@ -120,7 +120,7 @@ async function main() {
     rl.close()
 
     // Display a goodbye message
-    console.log(messages.exit)
+    console.log("Vale et gratias tibi ago for using Magnus Liber Imperatorum.")
 }
 
 // Call main as a promise so we can use async/await in the demo code.

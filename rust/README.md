@@ -1,3 +1,15 @@
-# Azure OpenAI demo
+# Rust Azure OpenAI demo
 
-This demo uses There is a crate for OpenAI ChatGPT, but does not support Azure OpenAI.
+## Quick Start
+
+Using Bash:
+```bash
+cd rust
+export OPENAI_URL="https://<myresource>.openai.azure.com/"
+export OPENAI_KEY="XXXXXXXXXXXXXXXXX"
+export OPENAI_DEPLOYMENT="<mydeployment>"
+cargo run
+```
+(Setup the environment variables as appropriate)
+
+Note: There is a crate for OpenAI ChatGPT, but it does not support Azure OpenAI.

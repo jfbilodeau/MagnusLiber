@@ -4,5 +4,5 @@
     "deployment": "",
 
     "historyLength": 10,
-    "maxTokens": 1500
+    "maxTokens": 150
 }

@@ -13,25 +13,8 @@ uses
   System.Net.URLClient,
   System.SysUtils;
 
-type
-  TConfiguration = record
-    OpenAiUri: string;
-    OpenAiKey: string;
-    Deployment: string;
-
-    HistoryLength: Integer;
-    MaxTokens: Integer;
-  end;
-
-  TUiMessages = record
-    Greeting: string;
-    Prompt: string;
-    EmptyPrompt: string;
-    ExitMessage: string;
-  end;
-
-  // Since there is not an Azure OpenAI SDK for Delphi, we will re-create
-  // the basic functionality here.
+// Since there is not an Azure OpenAI SDK for Delphi, we will re-create
+// the basic functionality here.
 const
   RoleSystem    = 'system';
   RoleUser      = 'user';
@@ -57,33 +40,16 @@ type
 
 begin
   try
-    // Load configuration
-    var configurationFileName := '../MagnusLiber.dev.json';
+    // Load configuration from environment variables
+    var openAiUrl := GetEnvironmentVariable('OPENAI_URL');
+    var openAiKey := GetEnvironmentVariable('OPENAI_KEY');
+    var deployment := GetEnvironmentVariable('OPENAI_DEPLOYMENT');
 
-    if not TFile.Exists(configurationFileName) then
-      configurationFileName := '../MagusLiber.json';
+    if (openAiUrl = '') or (openAiKey = '') or (deployment = '') then
+      raise Exception.Create('Please set OPENAI_URL, OPENAI_KEY, and OPENAI_DEPLOYMENT environment variables.');
 
-    var configurationText := TFile.ReadAllText(configurationFileName);
-
-    var configurationJson := TJSONObject.ParseJSONValue(configurationText);
-
-    var configuration: TConfiguration;
-
-    configuration.OpenAiUri := configurationJson.GetValue<string>('openAiUri');
-    configuration.OpenAiKey := configurationJson.GetValue<string>('openAiKey');
-    configuration.Deployment := configurationJson.GetValue<string>('deployment');
-    configuration.HistoryLength := configurationJson.GetValue<Integer>('historyLength');
-    configuration.MaxTokens := configurationJson.GetValue<Integer>('maxTokens');
-
-    // Load UI messages
-    var uiMessagesJson := TJSONObject.ParseJSONValue(TFile.ReadAllText('../Messages.json'));
-
-    var uiMessages: TUiMessages;
-
-    uiMessages.Greeting := uiMessagesJson.GetValue<string>('greeting');
-    uiMessages.Prompt := uiMessagesJson.GetValue<string>('prompt');
-    uiMessages.EmptyPrompt := uiMessagesJson.GetValue<string>('emptyPrompt');
-    uiMessages.ExitMessage := uiMessagesJson.GetValue<string>('exit');
+    var HistoryLength := 10;
+    var MaxTokens := 150;
 
     // Load system message
     var systemMessageText := TFile.ReadAllText('../SystemMessage.txt');
@@ -98,13 +64,13 @@ begin
     var URL := Format(
       '%s/openai/deployments/%s/chat/completions?api-version=2023-05-15',
       [
-        configuration.OpenAiUri,
-        configuration.Deployment
+        openAiUrl,
+        deployment
       ]
     );
 
     // Greet user
-    Writeln(uiMessages.Greeting);
+    Writeln('Salve, seeker of wisdom. What would you like to know about our glorious Roman and Byzantine leaders?');
 
     // Start main loop
     var running := True;
@@ -113,7 +79,7 @@ begin
     begin
 
       // Prompt user
-      WriteLn(uiMessages.Prompt);
+      WriteLn('Quaeris quid (What is your question)?');
 
       var input: string;
       ReadLn(input);
@@ -121,7 +87,7 @@ begin
       input := input.Trim;
 
       if input = '' then
-        WriteLn(uiMessages.EmptyPrompt)
+        WriteLn('Me paenitet, non audivi te. (I''m sorry, I didn''t hear you)')
       else if (input = 'exit') or (input = 'quit') then
         running := False
       else begin
@@ -150,7 +116,7 @@ begin
         var requestJson := TJSONObject.Create;
         requestJson.AddPair('messages', messagesJson);
         requestJson.AddPair('n', 1); // Request one response (choice)
-        requestJson.AddPair('max_tokens', configuration.MaxTokens);
+        requestJson.AddPair('max_tokens', maxTokens);
 
         // The following settings are not necessary and included for demonstration purpose only.
         requestJson.AddPair('temperature', 0.7);
@@ -163,7 +129,7 @@ begin
 
         // Prepare headers.
         var headers: Tarray<TNameValuePair> := [
-          TNameValuePair.Create('api-key', configuration.OpenAiKey)
+          TNameValuePair.Create('api-key', openAiKey)
         ];
           
         // Create base HTTP request
@@ -192,8 +158,8 @@ begin
         history.Add(assistantMessage);
 
         // Trim history
-        if history.Count > configuration.HistoryLength then
-          history.DeleteRange(0, 2);
+        if history.Count > historyLength then
+          history.DeleteRange(0, 2);  // Remove 2: user and assistant messages
 
         // Free objects
         httpClient.Free;
@@ -204,7 +170,7 @@ begin
     
     end;
 
-    WriteLn(uiMessages.ExitMessage);
+    WriteLn('Vale et gratias tibi ago for using Magnus Liber Imperatorum.');
     
   except
     on E: Exception do
