@@ -4,7 +4,7 @@
 
 Welcome to **Magnus Liber Imperatorum**, the Great Book of Roman Emperors.
 
-Magnus Liber is an Azure OpenAI demos written in different programming languages. The goal of the demos is to illustrate basic use of the [OpenAI chat completion API](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#chat-completions), including request parameters, response and conversation management.
+Magnus Liber is an Azure OpenAI demo of the chat completion APIs written in different programming languages. The goal of the demos is to illustrate basic use of the [OpenAI chat completion API](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#chat-completions), including request parameters, response and conversation management.
 
 ## Getting started
 
@@ -12,10 +12,11 @@ To run Magnus Liber in any programming language, an Azure Subscription and an Az
 
 1. If necessary, get a [free Azure subscription](https://azure.microsoft.com/en-ca/free).
 2. Create an [Azure OpenAI service resource](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource).
-3. Deploy either an [OpenAI `gpt-4` or `gpt-3-turbo` model](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/provisioned-get-started).
-4. Run `git clone https://github.com/jfbilodeau/MagnusLiber.git`
-5. Run `cd MagnusLiber`
-6. Enter the directory of the demo you wish to run and review the instructions in `README.md`. All demos will require that the following environment variables be set:
+3. Deploy either an [OpenAI `gpt-4` or `gpt-3-turbo` model](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/provisioned-get-started). (Other models do _not_ support chat completions and will not work)
+4. Open a terminal
+5. Run `git clone https://github.com/jfbilodeau/MagnusLiber.git`
+6. Run `cd MagnusLiber`
+7. Enter the directory of the demo you wish to run and review the instructions in `README.md`. All demos will require that the following environment variables be set:
     - `OPENAI_URL`
     - `OPENAI_KEY`
     - `OPENAI_DEPLOYMENT`
@@ -29,8 +30,8 @@ To run Magnus Liber in any programming language, an Azure Subscription and an Az
 - For simplicity, written as one function
 - For clarity, there is very little error handling
 
-
 ## Programming Languages demos
+
 - [Bash](./bash/README.md)
 - [C++](./cpp/README.md)
 - [C# (Console)](./csharp-console/README.md)
