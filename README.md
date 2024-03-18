@@ -1,6 +1,6 @@
 # Magnus Liber Imperatorum
 
-# A set of Azure OpenAI demos
+## A set of Azure OpenAI demos
 
 Welcome to **Magnus Liber Imperatorum**, the Great Book of Roman Emperors.
 
@@ -55,7 +55,7 @@ The following prompts can be used to demonstrates different aspect of Azure Open
     - `Who was the first emperor?`
     - `Who followed him?`
 
-- Demonstrate optional counting by using the following prompt:
+- Demonstrate optional counting as defined in the `system` message by using the following prompt:
     - `Who were the five great emperors?`
 
 - Demonstrate the `max_token` parameter by reducing it from `1500` to `150` and re-run the above prompt. The answer will exceen the value of `max_token` and will be truncated.
@@ -67,4 +67,4 @@ The following prompts can be used to demonstrates different aspect of Azure Open
 - To get a answer in Latin, try:
     - `Quis es tu?` (Who are you?)
 
-- Finally, type `exit` or `quit` to terminal the demo. `CTRL+C` works as well.
+- Type `exit` or `quit` to terminal the demo. `CTRL+C` works as well.
