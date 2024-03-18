@@ -16,7 +16,7 @@ if openAiUrl is None or openAiKey is None or deployment is None:
     exit(1)
 
 historyLength = 10
-maxTokens = 150
+maxTokens = 1500
 
 # Create OpenAI client
 client = AzureOpenAI(

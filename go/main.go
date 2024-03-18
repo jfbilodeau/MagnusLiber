@@ -66,7 +66,7 @@ func main() {
 	}
 
 	historyLength := 10
-	maxTokens := 150
+	maxTokens := 1500
 
 	// Load system message
 	systemMessagePath := "../SystemMessage.txt"

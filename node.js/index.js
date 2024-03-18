@@ -15,7 +15,7 @@ async function main() {
     }
 
     const historyLength = 10
-    const maxTokens = 150
+    const maxTokens = 1500
 
     // Load system message text
     const systemMessageText = fs.readFileSync(`../SystemMessage.txt`, `utf-8`)

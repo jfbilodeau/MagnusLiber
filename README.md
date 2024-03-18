@@ -1,4 +1,5 @@
 # Magnus Liber Imperatorum
+
 # A set of Azure OpenAI demos
 
 Welcome to **Magnus Liber Imperatorum**, the Great Book of Roman Emperors.
@@ -14,14 +15,10 @@ To run Magnus Liber in any programming language, an Azure Subscription and an Az
 3. Deploy either an [OpenAI `gpt-4` or `gpt-3-turbo` model](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/provisioned-get-started).
 4. Run `git clone https://github.com/jfbilodeau/MagnusLiber.git`
 5. Run `cd MagnusLiber`
-6. Edit `MagnusLiber.json` with your Azure OpenAI configuration
-    - Note: To avoid accidently committing keys to git, consider copying `MagnusLiber.json` to `MagnusLiber.dev.json` and configuring the later. The file `MagnusLiber.dev.json` will not be included in a `git commit`.
-7. Change directory in the demo you would like to execute and run it.
-    - For example:
-    ```sh
-    cd powershell
-    ./MagnusLiber.ps1
-    ```
+6. Enter the directory of the demo you wish to run and review the instructions in `README.md`. All demos will require that the following environment variables be set:
+    - `OPENAI_URL`
+    - `OPENAI_KEY`
+    - `OPENAI_DEPLOYMENT`
 
 ## Design Goal
 
@@ -46,19 +43,27 @@ To run Magnus Liber in any programming language, an Azure Subscription and an Az
 - [Rust](./rust/README.md)
 
 ## Suggested prompts
-`Who was the first emperor?`
-followed by
-`Who followed him?`
-to demonstrate converstion state
 
-`Who were the five great emperors?`
+The following prompts can be used to demonstrates different aspect of Azure OpenAI chat completion.
 
-`Who are you?`
-`What can you do?`
-`What does your name mean?`
+- Demonstrate the use of the `system` message by using the following prompts:
+    - `Who are you?`
+    - `What can you do?`
 
-Demonstrate support for multiple languages:
-`Quis fuit primus Romanorum imperator?` ('Who was the first Roman Emperor' in Latin)
+- Demonstrate conversation state by using the following prompts in sequence:
+    - `Who was the first emperor?`
+    - `Who followed him?`
 
-To get a answer in Latin, try:
-`Quis es tu?` (Who are you?)
+- Demonstrate optional counting by using the following prompt:
+    - `Who were the five great emperors?`
+
+- Demonstrate the `max_token` parameter by reducing it from `1500` to `150` and re-run the above prompt. The answer will exceen the value of `max_token` and will be truncated.
+
+- Demonstrate the ability of OpenAI to understand different languages:
+    - `What does your name mean?`
+    - `Quis fuit primus Romanorum imperator?` ('Who was the first Roman Emperor' in Latin)
+
+- To get a answer in Latin, try:
+    - `Quis es tu?` (Who are you?)
+
+- Finally, type `exit` or `quit` to terminal the demo. `CTRL+C` works as well.

@@ -18,7 +18,7 @@ fi
 
 # Note: This script assumes `curl` and `awk` are installed.
 historyLength=10
-maxTokens=150
+maxTokens=1500
 
 # Set system message.
 systemMessageText=$(awk -v RS='\r?\n' '{printf "%s\\n",$0}' ../SystemMessage.txt)

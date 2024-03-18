@@ -37,7 +37,7 @@ int main()
     auto openAiKey = std::getenv("OPENAI_KEY");
     auto deployment = std::getenv("OPENAI_DEPLOYMENT");
     auto historyLength = 10;
-    auto maxTokens = 150;
+    auto maxTokens = 1500;
 
     // Validate configuration
     if (openAiUri == nullptr || openAiKey == nullptr || deployment == nullptr) {

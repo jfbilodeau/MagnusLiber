@@ -49,7 +49,7 @@ begin
       raise Exception.Create('Please set OPENAI_URL, OPENAI_KEY, and OPENAI_DEPLOYMENT environment variables.');
 
     var HistoryLength := 10;
-    var MaxTokens := 150;
+    var MaxTokens := 1500;
 
     // Load system message
     var systemMessageText := TFile.ReadAllText('../SystemMessage.txt');

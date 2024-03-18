@@ -51,7 +51,7 @@ async fn main() {
     let open_ai_deployment = env::var("OPENAI_DEPLOYMENT").expect("OPENAI_DEPLOYMENT environment variable must be set");
 
     let history_length = 10;
-    let max_tokens = 150;
+    let max_tokens = 1500;
 
     // Load system message
     let path = Path::new("../SystemMessage.txt");

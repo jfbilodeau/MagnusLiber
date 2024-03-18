@@ -26,7 +26,7 @@ public class Main {
         var historyLength = 10;
 
         // Maximum number of tokens to generate
-        var maxTokens = 150;
+        var maxTokens = 1500;
 
         // Create Azure OpenAI client
         var client = new OpenAIClientBuilder()

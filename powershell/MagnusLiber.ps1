@@ -12,7 +12,7 @@ if (-not $openAiUrl -or -not $openAiKey -or -not $openAiDeployment) {
 # The number of messages to keep in chat history
 $historyLength = 10
 # The maximum number of tokens in the response
-$maxTokens = 150
+$maxTokens = 1500
 
 $systemMessageText = Get-Content -Path "../SystemMessage.txt" -Raw
 

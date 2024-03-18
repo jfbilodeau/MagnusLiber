@@ -12,7 +12,7 @@ string openAiDeployment = Environment.GetEnvironmentVariable("OPENAI_DEPLOYMENT"
 // This number includes the user message and the assistant message.
 int HistoryLength = 10;
 // The maximum number of tokens to generate.
-int MaxTokens = 150;
+int MaxTokens = 1500;
 
 // Create OpenAI client
 AzureKeyCredential openAiKeyCredential = new(openAiKey);
