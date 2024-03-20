@@ -7,7 +7,7 @@ cd python
 
 1. Create a `venv` (optional)
 ```shell
-python3 -m venv venv
+python -m venv venv
 ```
 
 2. Activate the `venv` (if using venv)
@@ -27,10 +27,22 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Run
+4. Configure environment
+- On Windows:
+```PowerShell
+$env:OPENAI_URL="https://<myresource>.openai.azure.com/"
+$env:OPENAI_KEY="XXXXXXXXXXXXXXXXX"
+$env:OPENAI_DEPLOYMENT="Marcu<mydeployment>sAurelius"
+```
+
+- On Linux/MacOS
 ```shell
 export OPENAI_URL="https://<myresource>.openai.azure.com/"
 export OPENAI_KEY="XXXXXXXXXXXXXXXXX"
 export OPENAI_DEPLOYMENT="<mydeployment>"
+```
+
+5. Run Magus Liber!
+```shell
 python magnus_liber.py
 ```

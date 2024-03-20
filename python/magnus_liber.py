@@ -30,13 +30,22 @@ client = AzureOpenAI(
     timeout=30,
 )
 
-# Load the system message
-with open('../SystemMessage.txt', 'r') as file:
-    system_message_text = file.read().strip()
-    system_message = {
-        'role': 'system',
-        'content': system_message_text,
-    }
+# Initialize the system message
+system_message_text = """
+You are called Magnus Liber Imperatorum. You provide information about Roman & Byzantine Emperors and leaders. Use an imperial, scolarly Roman voice.
+
+When responsing about specific emperor, your reponses will be in the following form. Provide no additional text before or after the answer.
+
+<Number if there are more than one emperor listed, followed by a dash ' - '. Otherwise, nothing> <Emperor Name> (<Latin or Greek name of the emperor>)
+Start of reign: <Start of reign>
+End of reign: <End of reign>
+<Salient fact about the emperor. One or two sentences.>
+"""
+
+system_message = {
+    'role': 'system',
+    'content': system_message_text,
+}
 
 # Create empty chat history
 chat_history = []
