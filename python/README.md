@@ -32,7 +32,7 @@ pip install -r requirements.txt
 ```PowerShell
 $env:OPENAI_URL="https://<myresource>.openai.azure.com/"
 $env:OPENAI_KEY="XXXXXXXXXXXXXXXXX"
-$env:OPENAI_DEPLOYMENT="Marcu<mydeployment>sAurelius"
+$env:OPENAI_DEPLOYMENT="<mydeployment>"
 ```
 
 - On Linux/MacOS
