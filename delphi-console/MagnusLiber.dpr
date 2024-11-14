@@ -119,8 +119,8 @@ begin
         requestJson.AddPair('max_tokens', maxTokens);
 
         // The following settings are not necessary and included for demonstration purpose only.
-        requestJson.AddPair('temperature', 0.7);
-        requestJson.AddPair('top_p', 0.95);
+        requestJson.AddPair('temperature', 1.0);
+        requestJson.AddPair('top_p', 1.0);
         requestJson.AddPair('presence_penalty', 0.0);
         requestJson.AddPair('frequency_penalty', 0.0);
 

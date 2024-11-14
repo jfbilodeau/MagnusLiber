@@ -85,8 +85,8 @@ while (running)
 
                 // The following lines are included for demonstration purposes.
                 // Adjust the following as necessary.
-                Temperature = 0.7f,
-                NucleusSamplingFactor = 0.7f,  // AKA top_p sampling
+                Temperature = 1.0f,
+                NucleusSamplingFactor = 1.0f,  // AKA top_p sampling
                 FrequencyPenalty = 0.0f,
                 PresencePenalty = 0.0f,
             };

@@ -86,8 +86,10 @@ public class Main {
                             // Set the number of desired responses
                             .setN(1)
                             // The following are sample parameters
-                            .setTemperature(0.7)
-                            .setTopP(1.0);
+                            .setTemperature(1.0)
+                            .setTopP(1.0)
+                            .setPresencePenalty(0.0)
+                            .setFrequencyPenalty(0.0);
 
                     // Create completion
                     ChatCompletions completions = client.getChatCompletions(

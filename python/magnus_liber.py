@@ -92,8 +92,8 @@ while running:
             n = 1,
             max_tokens=maxTokens,
             # The following parameters are optional and included for demonstration purpose only
-            temperature=0.7,
-            top_p=0.95,
+            temperature=1.0,
+            top_p=1.0,
             frequency_penalty=0.0,
             presence_penalty=0.0,
         )

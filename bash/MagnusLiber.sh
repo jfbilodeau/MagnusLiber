@@ -72,8 +72,8 @@ while [ $running = true ]; do
             \"n\": 1,
             \"max_tokens\": $maxTokens,
 
-            \"temperature\": 0.7,
-            \"top_p\": 1,
+            \"temperature\": 1.0,
+            \"top_p\": 1.0,
             \"presence_penalty\": 0,
             \"frequency_penalty\": 0
         }

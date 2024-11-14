@@ -134,8 +134,8 @@ async fn main() {
                     n: 1,  // Number of responses to generate
 
                     // The following parameters are provide as an example
-                    temperature: 0.7,
-                    top_p: 0.95,
+                    temperature: 1.0,
+                    top_p: 1.0,
                     frequency_penalty: 0.0,
                     presence_penalty: 0.0,
 

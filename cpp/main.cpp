@@ -143,8 +143,8 @@ int main()
                 {"n", 1},
 
                 // The next set of parameters are optional and include as example with their default values.
-                {"temperature", 0.7},
-                {"top_p", 0.95},
+                {"temperature", 1.0},
+                {"top_p", 1.0},
                 {"presence_penalty", 0.0},
                 {"frequency_penalty", 0.0},
             };

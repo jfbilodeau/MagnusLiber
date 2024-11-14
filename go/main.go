@@ -134,10 +134,10 @@ func main() {
 				N:         1, // Maximum number of completions to generate
 
 				// The following parameters are provided as examples. They are not required and are set to their default values.
+				Temperature:      1.0,
+				TopP:             1.0,
 				FrequencyPenalty: 0.0,
 				PresencePenalty:  0.0,
-				Temperature:      0.7,
-				TopP:             0.95,
 			}
 
 			// Convert to JSON string
